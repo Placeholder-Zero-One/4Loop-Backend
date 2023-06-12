@@ -16,6 +16,7 @@ let videoSchema = new Schema({
     contentType: String
 });
 
+
 let postSchema = new Schema({
     userId: String,
     caption: String,
