@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 // The Buffer data type is used to store the actual binary data of the media file in the data property of the media field. 
 //The Buffer type allows you to efficiently store and manipulate binary data in Node.js.
 let mediaSchema = new Schema({
+    name:String,
     data: Buffer,
     contentType: String
 });

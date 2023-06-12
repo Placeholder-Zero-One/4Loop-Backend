@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const fs = require('fs');
 const Post = require('./models/Post');
-let post
+
 async function Seed() {
     try {
         await mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true, useUnifiedTopology: true });
