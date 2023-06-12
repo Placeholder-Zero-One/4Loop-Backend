@@ -7,14 +7,16 @@ const app = express();
 const multer = require('multer');
 const bodyParser = require('body-parser')
 const Photo = require('./models/Photo');
+const Seed = require('./Seed')
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT; // Set the port for the server
 
-
 app.use(bodyParser.json({ limit: '10485760' })); // 10 * 1024 * 1024
 app.use(bodyParser.urlencoded({ limit: '10485760', extended: true }));
+Seed();
+
 
 // Create a multer middleware with the storage engine
 //const storage = multer.memoryStorage()
@@ -23,7 +25,7 @@ const upload = multer({
     limits: { fileSize: 10485760 } // Set file size limit to 10MB
 });
 
-mongoose.connect(process.env.DATABASE_URL, {
+mongoose.connect(process.env.DATABASE_URL_Cloud, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
@@ -59,7 +61,7 @@ app.use((err, req, res, next) => {
 app.get('/test', async (req, res) => {
     // Connect to the MongoDB database
     try {
-        await mongoose.connect(process.env.DATABASE_URL, {
+        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
@@ -74,13 +76,12 @@ app.get('/test', async (req, res) => {
     } finally {
         await mongoose.disconnect()
     }
-
 })
 
 app.post('/upload', upload.single('photo'), async (req, res) => {
 
     try {
-        await mongoose.connect(process.env.DATABASE_URL, {
+        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
@@ -113,7 +114,7 @@ app.post('/blogs', upload.single('photo'), async (req, res) => {
     try {
         console.log("file", req.body); // Add this line to see the file data
 
-        await mongoose.connect(process.env.DATABASE_URL, {
+        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
