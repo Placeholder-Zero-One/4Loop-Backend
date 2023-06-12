@@ -6,8 +6,9 @@ const Post = require('./models/Post');
 async function Seed() {
     try {
         await mongoose.connect(process.env.DATABASE_URL_Cloud, { useNewUrlParser: true, useUnifiedTopology: true });
-        const pictureBuffer1 = fs.readFileSync('/Users/jaredplummer/Desktop/Screenshot 2023-06-12 at 1.55.26 PM.png');
-        const pictureBuffer2 = fs.readFileSync('/Users/jaredplummer/Desktop/Screenshot 2023-06-12 at 1.43.11 PM.png');
+        const pictureBuffer1 = './assests/Screenshot 2023-06-12 at 1.43.11 PM.png'
+        const pictureBuffer2 = './assests/Screenshot 2023-06-12 at 1.55.26 PM.png'
+
     
        let post = await Post.create({
             userId: 'jaredp',
