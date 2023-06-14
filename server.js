@@ -2,13 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const Post = require('./models/Post');
-const app = express();
+const Post = require('./models/Post');//
+const app = express(); //
 const multer = require('multer');
 const path = require('path')
 const bodyParser = require('body-parser');
-const Photo = require('./models/Photo');
-const Seed = require('./Seed');
+const Photo = require('./models/Photo');//
+const Seed = require('./Seed');//
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'))
@@ -49,40 +49,47 @@ mongoose.connect(process.env.DATABASE_URL_Cloud, {
 
 
 // Middleware for JWT verification
-// const verifyJWT = jwt({
-//     secret: jwks.expressJwtSecret({
-//         cache: true,
-//         rateLimit: true,
-//         jwksRequestsPerMinute: 5,
-//         jwksUri: `${process.env.JWKS_URI}` // Retrieve JWKS URI from environment variables
-//     }),
-//     audience: `${process.env.AUDIENCE}`, // Set the JWT audience from environment variables
-//     issuer: `${process.env.ISSUER}`, // Set the JWT issuer from environment variables
-//     algorithms: ['RS256'] // Set the allowed JWT signing algorithms
-// }).unless({ path: ['/books'] }); // Exclude the '/books' path from JWT verification
+const verifyJWT = jwt({
+    secret: jwks.expressJwtSecret({
+        cache: true,
+        rateLimit: true,
+        jwksRequestsPerMinute: 5,
+        jwksUri: `${process.env.JWKS_URI}` // Retrieve JWKS URI from environment variables
+    }),
+    audience: `${process.env.AUDIENCE}`, // Set the JWT audience from environment variables
+    issuer: `${process.env.ISSUER}`, // Set the JWT issuer from environment variables
+    algorithms: ['RS256'] // Set the allowed JWT signing algorithms
+}).unless({ path: ['/upload'] }); // Exclude the '/upload' path from JWT verification
 
 // app.use(verifyJWT); // Apply JWT verification to all routes except '/books'
 
 
-// app.get('/test', async (req, res) => {
-//     // Connect to the MongoDB database
-//     try {
-//         await mongoose.connect(process.env.DATABASE_URL_Cloud, {
-//             useNewUrlParser: true,
-//             useUnifiedTopology: true
-//         });
+app.get('/upload', async (req, res) => {
+    try {
+        await mongoose.connect(process.env.DATABASE_URL, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+    
+        let posts = await Post.find()
+        console.log(posts)
+        res.json(posts)
+    } catch (error){
+        console.log("This is the error", error)
+        res.status(500).send('Internal Server Error'); // Send an error response
 
-//         let posts = await Post.find()
-//         //console.log(posts)
-//         res.json(posts)
-//     } catch (error) {
-//         console.log("This is the error", error)
-//         res.status(500).send('Internal Server Error'); // Send an error response
+    } finally {
+        await mongoose.disconnect()
+    }
 
-//     } finally {
-//         await mongoose.disconnect()
-//     }
-// })
+})
+
+app.put('/upload:id', (req, res) => {
+    const {title, caption, likes, media} = req.body
+    let updatedPost = Post.findByIdAndUpdate({id:_id}, {title:title, caption:caption, likes:likes, media:media})
+    let postFinder = Post.find()
+    res.send(postFinder)
+})
 
 
 app.post('/upload', upload.single('file'),async (req, res) => {
@@ -98,7 +105,7 @@ app.post('/upload', upload.single('file'),async (req, res) => {
             useUnifiedTopology: true
         });
 
-        let newPhoto = await Photo.create({ imgage: req.file.filename })
+        let newPhoto = await Photo.create({ image: req.file.filename })
 
         // Access the file data through req.file.buffer
         let newPost = await Post.create({
@@ -124,37 +131,18 @@ app.post('/upload', upload.single('file'),async (req, res) => {
 });
 
 
-// app.post('/blogs', upload.single('photo'), async (req, res) => {
-//     try {
-//         console.log('===================================================================================')
-//         console.log("file", req.body); // Add this line to see the file data
 
-//         await mongoose.connect(process.env.DATABASE_URL_Cloud, {
-//             useNewUrlParser: true,
-//             useUnifiedTopology: true
-//         });
-
-//         // Access the file data through req.file.buffer
-//         let newPost = await Post.create({
-//             userId: 'jaredp',
-//             title: req.body.title,
-//             caption: req.body.caption,
-//             likes: 2,
-//             media: req.body.myFile // convert base64 string to buffer
-                
-            
-//         });
-//         console.log('===================================================================================')
-//         console.log(newPost);
-//         let posts = await Post.find();
-//         res.json(newPost);
-//     } catch (error) {
-//         console.log("This is the error", error);
-//         res.status(500).send('Internal Server Error');
-//     } finally {
-//         await mongoose.disconnect();
-//     }
-// });
+app.delete('/upload:id', async (req, res) => {
+    await connection()
+  const blogId = req.params.id
+  
+  await seed.findByIdAndDelete(blogId)
+  disconnect()
+  res.send('Post successfully deleted')
+  .catch((error) => {
+    res.status(500).json({error: error.message})
+  })
+  })
 
 
 
