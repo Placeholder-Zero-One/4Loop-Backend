@@ -6,9 +6,9 @@ const { Schema } = mongoose;
 
 
 let photoSchema = new Schema({
-    name:String,
-    data: Buffer,
-    contentType: String
+  
+    image: String
+   
 });
 
 const Photo = mongoose.model('Photo', photoSchema);
