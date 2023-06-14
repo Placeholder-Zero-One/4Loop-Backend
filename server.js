@@ -5,25 +5,35 @@ const mongoose = require('mongoose');
 const Post = require('./models/Post');
 const app = express();
 const multer = require('multer');
-const bodyParser = require('body-parser')
+const path = require('path')
+const bodyParser = require('body-parser');
 const Photo = require('./models/Photo');
-const Seed = require('./Seed')
+const Seed = require('./Seed');
 app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT; // Set the port for the server
 
-app.use(bodyParser.json({ limit: '10485760' })); // 10 * 1024 * 1024
-app.use(bodyParser.urlencoded({ limit: '10485760', extended: true }));
-Seed();
+// app.use(bodyParser.json({ limit: '10485760' })); // 10 * 1024 * 1024
+// app.use(bodyParser.urlencoded({ limit: '10485760', extended: true }));
 
 
-// Create a multer middleware with the storage engine
-//const storage = multer.memoryStorage()
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10485760 } // Set file size limit to 10MB
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        console.log("About to call cb for destination");
+        cb(null, 'public/Images');
+    },
+    filename: (req, file, cb) => {
+        console.log("About to call cb for filename");
+        cb(null, file.fieldname + "_" + Date.now() + path.extname(file.originalname));
+    }
 });
+
+
+// Increase file size limit
+const upload = multer({ storage: storage});
+
 
 mongoose.connect(process.env.DATABASE_URL_Cloud, {
     useNewUrlParser: true,
@@ -33,12 +43,7 @@ mongoose.connect(process.env.DATABASE_URL_Cloud, {
     .catch(err => console.log('Could not connect to MongoDB:', err));
 
 
-app.use((err, req, res, next) => {
-    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
-        return res.status(400).json({ error: 'File too large' });
-    }
-    // handle other errors
-});
+
 
 
 
@@ -58,89 +63,105 @@ app.use((err, req, res, next) => {
 // app.use(verifyJWT); // Apply JWT verification to all routes except '/books'
 
 
-app.get('/test', async (req, res) => {
-    // Connect to the MongoDB database
+// app.get('/test', async (req, res) => {
+//     // Connect to the MongoDB database
+//     try {
+//         await mongoose.connect(process.env.DATABASE_URL_Cloud, {
+//             useNewUrlParser: true,
+//             useUnifiedTopology: true
+//         });
+
+//         let posts = await Post.find()
+//         //console.log(posts)
+//         res.json(posts)
+//     } catch (error) {
+//         console.log("This is the error", error)
+//         res.status(500).send('Internal Server Error'); // Send an error response
+
+//     } finally {
+//         await mongoose.disconnect()
+//     }
+// })
+
+
+app.post('/upload', upload.single('file'),async (req, res) => {
+    console.log('Upload route hit');
+    console.log("File",req.file);
+    
     try {
+        console.log('===================================================================================')
+       // console.log("file", req.body); // Add this line to see the file data
+
         await mongoose.connect(process.env.DATABASE_URL_Cloud, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
 
-        let posts = await Post.find()
-        console.log(posts)
-        res.json(posts)
-    } catch (error) {
-        console.log("This is the error", error)
-        res.status(500).send('Internal Server Error'); // Send an error response
-
-    } finally {
-        await mongoose.disconnect()
-    }
-})
-
-app.post('/upload', upload.single('photo'), async (req, res) => {
-
-    try {
-        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        //console.log(req.file)
-        const { originalname, mimetype, buffer } = req.file;
-        //console.log("Buffer", buffer)
-
-        let photo = await Photo.create({
-            name: originalname,
-            data: buffer,
-            contentType: mimetype
-        });
-        //console.log(req.file.buffer)
-        //let photos = await Photo.find()
-        console.log(photo)
-        res.json(photo)
-
-    } catch (error) {
-        console.error('Error storing uploaded file:', error);
-        res.status(500).json({ error: 'Error storing uploaded file' });
-    } finally {
-        await mongoose.disconnect()
-    }
-
-});
-
-
-
-app.post('/blogs', upload.single('photo'), async (req, res) => {
-    try {
-        console.log("file", req.body); // Add this line to see the file data
-
-        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        let newPhoto = await Photo.create({ imgage: req.file.filename })
 
         // Access the file data through req.file.buffer
         let newPost = await Post.create({
             userId: 'jaredp',
+            title: req.body.title,
             caption: req.body.caption,
             likes: 2,
-            media: {
-                data: req.body.photoBuffer, // receiving buffer
-                contentType: req.body.mimetype
-            }
+            media: { data : req.file.filename } // convert base64 string to buffer
+                
+            
         });
-
+        console.log('===================================================================================')
+        console.log(newPost);
         let posts = await Post.find();
-        res.json(posts);
+        res.json(newPost);
     } catch (error) {
         console.log("This is the error", error);
         res.status(500).send('Internal Server Error');
     } finally {
         await mongoose.disconnect();
     }
+    
 });
 
 
+// app.post('/blogs', upload.single('photo'), async (req, res) => {
+//     try {
+//         console.log('===================================================================================')
+//         console.log("file", req.body); // Add this line to see the file data
 
+//         await mongoose.connect(process.env.DATABASE_URL_Cloud, {
+//             useNewUrlParser: true,
+//             useUnifiedTopology: true
+//         });
+
+//         // Access the file data through req.file.buffer
+//         let newPost = await Post.create({
+//             userId: 'jaredp',
+//             title: req.body.title,
+//             caption: req.body.caption,
+//             likes: 2,
+//             media: req.body.myFile // convert base64 string to buffer
+                
+            
+//         });
+//         console.log('===================================================================================')
+//         console.log(newPost);
+//         let posts = await Post.find();
+//         res.json(newPost);
+//     } catch (error) {
+//         console.log("This is the error", error);
+//         res.status(500).send('Internal Server Error');
+//     } finally {
+//         await mongoose.disconnect();
+//     }
+// });
+
+
+
+app.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'File too large' });
+    }
+    // handle other errors
+});
 
 app.listen(PORT, () => console.log(`listening on ${PORT}`)); // Start the server and listen on the specified port
