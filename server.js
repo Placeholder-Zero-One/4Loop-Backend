@@ -11,6 +11,7 @@ const Photo = require('./models/Photo');
 const Seed = require('./Seed');
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'))
 
 const PORT = process.env.PORT; // Set the port for the server
 
@@ -105,7 +106,7 @@ app.post('/upload', upload.single('file'),async (req, res) => {
             title: req.body.title,
             caption: req.body.caption,
             likes: 2,
-            media: { data : req.file.filename } // convert base64 string to buffer
+            media: { data : 'https://fourloop-backend-fwxi.onrender.com/' ||  "http://localhost:3001/Images/"  + req.file.filename } // convert base64 string to buffer
                 
             
         });
