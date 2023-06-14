@@ -106,7 +106,7 @@ app.post('/upload', upload.single('file'),async (req, res) => {
             title: req.body.title,
             caption: req.body.caption,
             likes: 2,
-            media: { data : 'https://fourloop-backend-fwxi.onrender.com/' ||  "http://localhost:3001/Images/"  + req.file.filename } // convert base64 string to buffer
+            media: { data : 'https://fourloop-backend-fwxi.onrender.com/Images/' ||  "http://localhost:3001/Images/"  + req.file.filename } // convert base64 string to buffer
                 
             
         });
