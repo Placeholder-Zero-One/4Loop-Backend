@@ -9,6 +9,9 @@ const path = require('path')
 const bodyParser = require('body-parser');
 const Photo = require('./models/Photo');//
 const Seed = require('./Seed');//
+const jwks = require('jwks-rsa'); // Import jwks-rsa for JWT verification
+const { expressjwt: jwt } = require('express-jwt'); // Import express-jwt for JWT verification
+
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'))
@@ -61,7 +64,7 @@ const verifyJWT = jwt({
     algorithms: ['RS256'] // Set the allowed JWT signing algorithms
 }).unless({ path: ['/upload'] }); // Exclude the '/upload' path from JWT verification
 
-// app.use(verifyJWT); // Apply JWT verification to all routes except '/books'
+app.use(verifyJWT); // Apply JWT verification to all routes except '/books'
 
 
 app.get('/upload', async (req, res) => {
