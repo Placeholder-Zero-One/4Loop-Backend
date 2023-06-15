@@ -6,7 +6,8 @@ const { Schema } = mongoose;
 
 let mediaSchema = new Schema({
     
-    data: String
+    data: String,
+    localdata:String
   
 });
 
