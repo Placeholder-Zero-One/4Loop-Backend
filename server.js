@@ -97,7 +97,7 @@ app.put('/upload:id', (req, res) => {
 
 app.post('/upload', upload.single('file'),async (req, res) => {
     console.log('Upload route hit');
-    console.log("File",req.file);
+    console.log("Request",req.body.title);
     
     try {
         console.log('===================================================================================')
@@ -108,15 +108,15 @@ app.post('/upload', upload.single('file'),async (req, res) => {
             useUnifiedTopology: true
         });
 
-        let newPhoto = await Photo.create({ image: req.file.filename })
-
+        let newPhoto = await Photo.create({ image: 'https://fourloop-backend-fwxi.onrender.com/Images/' + req.file.filename })
+            //console.log(req)
         // Access the file data through req.file.buffer
         let newPost = await Post.create({
             userId: 'jaredp',
             title: req.body.title,
-            caption: req.body.caption,
-            likes: 2,
-            media: { data : 'https://fourloop-backend-fwxi.onrender.com/Images/' ||  "http://localhost:3001/Images/"  + req.file.filename } // convert base64 string to buffer
+            caption: req.body.content,
+            likes: req.like,
+            media: { data : 'https://fourloop-backend-fwxi.onrender.com/Images/' + req.file.filename } // convert base64 string to buffer
                 
             
         });
