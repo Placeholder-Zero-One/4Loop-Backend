@@ -69,7 +69,7 @@ app.use(verifyJWT); // Apply JWT verification to all routes except '/books'
 
 app.get('/upload', async (req, res) => {
     try {
-        await mongoose.connect(process.env.DATABASE_URL, {
+        await mongoose.connect(process.env.DATABASE_URL_Cloud, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
@@ -81,13 +81,15 @@ app.get('/upload', async (req, res) => {
         console.log("This is the error", error)
         res.status(500).send('Internal Server Error'); // Send an error response
 
-    } finally {
-        await mongoose.disconnect()
-    }
+    } 
 
 })
 
-app.put('/upload:id', (req, res) => {
+app.put('/upload:id', async (req, res) => {
+    await mongoose.connect(process.env.DATABASE_URL_Cloud, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
     const {title, caption, likes, media} = req.body
     let updatedPost = Post.findByIdAndUpdate({id:_id}, {title:title, caption:caption, likes:likes, media:media})
     let postFinder = Post.find()
@@ -116,7 +118,10 @@ app.post('/upload', upload.single('file'),async (req, res) => {
             title: req.body.title,
             caption: req.body.content,
             likes: req.like,
-            media: { data : 'https://fourloop-backend-fwxi.onrender.com/Images/' + req.file.filename } // convert base64 string to buffer
+            media: {
+                data: 'https://fourloop-backend-fwxi.onrender.com/Images/' + req.file.filename,
+                localdata:'http://localhost:3001/Images/' + req.file.filename
+            } // convert base64 string to buffer
                 
             
         });
@@ -127,16 +132,17 @@ app.post('/upload', upload.single('file'),async (req, res) => {
     } catch (error) {
         console.log("This is the error", error);
         res.status(500).send('Internal Server Error');
-    } finally {
-        await mongoose.disconnect();
-    }
+    } 
     
 });
 
 
 
 app.delete('/upload:id', async (req, res) => {
-    await connection()
+    await mongoose.connect(process.env.DATABASE_URL_Cloud, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+    });
   const blogId = req.params.id
   
   await seed.findByIdAndDelete(blogId)
